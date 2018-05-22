@@ -72,7 +72,8 @@ dim(to_test)
 
 ```{r DTM}
 DTM <- rpart(classe ~ ., data = to_train, method="class")
-fancyRpartPlot(DTM)
+fancyRpartPlot(DTM, "Classe Decision Tree Model")
+
 ```
 
 ### Decision Tree Model Prediction
