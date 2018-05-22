@@ -1,0 +1,104 @@
+---
+title: 'Machine Learning Week 4: Prediction Assignment'
+author: "Janet M"
+date: "May 21, 2018"
+output: pdf_document
+---
+
+
+## Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+The training data for this project are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+The data for this project come from this source: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har. 
+
+### Load Packages
+
+```{r packages}
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(RColorBrewer)
+library(randomForest)
+```
+
+### Load Data
+
+```{r loaddata}
+url_train <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+url_test <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+train <- read.csv(url(url_train))
+test  <- read.csv(url(url_test))
+```
+
+###Clean Data
+
+Remove variables that are NA and are not a part of the testing dataset, and exlude the variables that aren't useful at all for this exercise. 
+
+```{r clean}
+feat <- names(test[,colSums(is.na(test))==0])[8:59]
+
+train <- train[,c(feat,"classe")]
+test <- test[,c(feat, "problem_id")]
+```
+
+###Partition training data
+
+In this course we learned to break the training data up into a training set(60%) and a testing set(40%) in order to give us the ability to find out of sample error of our predictor. 
+
+```{r partition}
+
+in_train <- createDataPartition(train$classe, p=0.6, list=FALSE)
+to_train <- train[in_train, ]; to_test <- train[-in_train, ]
+
+dim(to_train)
+dim(to_test)
+```
+
+###Build A Decision Tree Model
+
+```{r DTM}
+DTM <- rpart(classe ~ ., data = to_train, method="class")
+fancyRpartPlot(DTM)
+```
+
+###Decision Tree Model Prediction
+
+The decision tree model here has an accuracy of 0.7366. We will try another model in an effort to get something more accurate.
+```{r predict_DTM}
+set.seed(8765)
+
+prediction <- predict(DTM, to_test, type = "class")
+confusionMatrix(prediction, to_test$classe)
+```
+
+###Random Forests
+
+The random forest model here has an accuracy of 0.9954! This is much improved from the decision tree model. 
+
+```{r RFM} 
+set.seed(8765)
+RFM <- randomForest(classe ~ ., data = to_train, ntree = 1000)
+
+prediction <- predict(RFM, to_test, type = "class")
+confusionMatrix(prediction, to_test$classe)
+```
+
+###Out of Sample Order
+
+We will use the Random Forest model to predict the 20 cases from the testing data set. 
+
+```{r test_predict}
+predictions <- predict(RFM, test, type = "class")
+predictions
