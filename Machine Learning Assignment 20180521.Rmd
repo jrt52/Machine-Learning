@@ -2,7 +2,9 @@
 title: 'Machine Learning Week 4: Prediction Assignment'
 author: "Janet M"
 date: "May 21, 2018"
-output: pdf_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 
@@ -42,7 +44,7 @@ train <- read.csv(url(url_train))
 test  <- read.csv(url(url_test))
 ```
 
-###Clean Data
+### Clean Data
 
 Remove variables that are NA and are not a part of the testing dataset, and exlude the variables that aren't useful at all for this exercise. 
 
@@ -53,7 +55,7 @@ train <- train[,c(feat,"classe")]
 test <- test[,c(feat, "problem_id")]
 ```
 
-###Partition training data
+### Partition training data
 
 In this course we learned to break the training data up into a training set(60%) and a testing set(40%) in order to give us the ability to find out of sample error of our predictor. 
 
@@ -66,16 +68,17 @@ dim(to_train)
 dim(to_test)
 ```
 
-###Build A Decision Tree Model
+### Build A Decision Tree Model
 
 ```{r DTM}
 DTM <- rpart(classe ~ ., data = to_train, method="class")
 fancyRpartPlot(DTM)
 ```
 
-###Decision Tree Model Prediction
+### Decision Tree Model Prediction
 
 The decision tree model here has an accuracy of 0.7366. We will try another model in an effort to get something more accurate.
+
 ```{r predict_DTM}
 set.seed(8765)
 
@@ -83,7 +86,7 @@ prediction <- predict(DTM, to_test, type = "class")
 confusionMatrix(prediction, to_test$classe)
 ```
 
-###Random Forests
+### Random Forests
 
 The random forest model here has an accuracy of 0.9954! This is much improved from the decision tree model. 
 
@@ -95,10 +98,11 @@ prediction <- predict(RFM, to_test, type = "class")
 confusionMatrix(prediction, to_test$classe)
 ```
 
-###Out of Sample Order
+### Out of Sample Order
 
 We will use the Random Forest model to predict the 20 cases from the testing data set. 
 
 ```{r test_predict}
 predictions <- predict(RFM, test, type = "class")
 predictions
+```
